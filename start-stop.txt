@@ -1,0 +1,4 @@
+cd '/run/media/boss/Shared/All-Projects/Github_Projects/Series-C/ARTEX-copy'
+
+sudo docker compose stop
+sudo docker compose start
