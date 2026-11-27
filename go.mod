@@ -4,6 +4,7 @@ go 1.26.11
 
 require (
 	github.com/Autumn-27/norma v0.4.11
+	github.com/andybalholm/brotli v1.2.7
 	github.com/aws/aws-sdk-go-v2 v1.47.5
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.25
 	github.com/aws/aws-sdk-go-v2/config v1.33.13
@@ -12,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.114.6
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.5.3
+	github.com/gorilla/websocket v1.5.4-0.20240701034025-d67f41855da4
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/klauspost/compress v1.20.2
 	github.com/lqqyt2423/go-mitmproxy v1.9.2
@@ -26,7 +27,6 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.2.7 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.20.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.8 // indirect

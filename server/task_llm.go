@@ -248,7 +248,7 @@ func (r *taskLLMRuntime) currentFor(ctx context.Context) (taskLLMSelection, erro
 	}
 	prov, cfg, id, ok := r.s.globalProviderWithProfile()
 	if !ok {
-		return sel, fmt.Errorf("task %s has no available fallback LLM provider", r.taskID)
+		return sel, fmt.Errorf("task %s has no available fallback LLM provider: %w", r.taskID, agent.ErrGoalDecompositionNoProvider)
 	}
 	sel.provider, sel.retry = prov, cfg.Retry
 	sel.healthProfileID = healthIDFor(prov, id)
@@ -801,6 +801,8 @@ func (s *Server) agentsForTask(t *Task) *taskAgentBundle {
 	window := workerRuntime.CompactionWindow()
 	wk := agent.NewWorker(workerRuntime, "task-router", s.m.dir, tx, window, s.agentMaxTurns("worker"))
 	wk.SetFindingRecorder(s.evidenceStore())
+	wk.SetTriageClient(s.triageClient()) // advisory dedup on report_finding (nil = off)
+	s.applyTriageThreshold()             // stored suppression threshold (cheap, idempotent)
 	wk.SetCompactionWindowResolver(workerRuntime.CompactionWindow)
 	wk.SetNonStreaming(workerRuntime.nonStreaming) // per the task's currently active profile streaming switch (read every turn)
 	wk.SetMaxTokens(workerRuntime.maxTokens)       // as above, the output cap also follows the currently active profile
@@ -812,6 +814,7 @@ func (s *Server) agentsForTask(t *Task) *taskAgentBundle {
 	wk.SetConstraintInject(s.constraintInjectWorker) // operation-constraint injection into the worker (configurable, on by default)
 	pl := agent.NewPlanner(plannerRuntime, "task-router", s.m.dir, tx, plannerRuntime.CompactionWindow(), s.agentMaxTurns("planner"))
 	pl.SetFindingRecorder(s.evidenceStore())
+	pl.SetTriageClient(s.triageClient()) // the planner registers findings too (wrap-up paths)
 	pl.SetCompactionWindowResolver(plannerRuntime.CompactionWindow)
 	pl.SetNonStreaming(plannerRuntime.nonStreaming)
 	pl.SetMaxTokens(plannerRuntime.maxTokens)
@@ -870,7 +873,11 @@ func (s *Server) emitTaskLLMTransition(t *Task, transition db.TaskLLMTransition,
 	}
 	mode := "automatic"
 	kind := "llm_switch"
-	summary := fmt.Sprintf("%s quota exhausted", llmAuditProfileLabel(previous))
+	reasonLabel := "failed consecutive calls"
+	if isQuotaExhaustedError(cause) {
+		reasonLabel = "quota exhausted"
+	}
+	summary := fmt.Sprintf("%s %s", llmAuditProfileLabel(previous), reasonLabel)
 	if transition.NextProfileID != nil {
 		summary += fmt.Sprintf(", subsequent calls switched to %s", llmAuditProfileLabel(next))
 	} else {

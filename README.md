@@ -14,8 +14,11 @@ and every finding stays bound to the assets and HTTP traffic that prove it.
 [![License](https://img.shields.io/github/license/BaaRai/ARTEX?color=6b34db)](LICENSE)
 [![CI](https://github.com/BaaRai/ARTEX/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/BaaRai/ARTEX/actions/workflows/ci.yml)
 [![Go](https://img.shields.io/github/go-mod/go-version/BaaRai/ARTEX?color=6b34db)](go.mod)
+[![Discord](https://img.shields.io/badge/Discord-join%20the%20server-5865F2?logo=discord&logoColor=white)](https://discord.gg/VKyvMTcgXh)
 
 [Quick start](#quick-start) · [Screenshots](#screenshots) · [How it works](#how-it-works) · [Install](#installation) · [Configuration](#configuration) · [Security](SECURITY.md)
+
+[![Join us on Discord](https://img.shields.io/badge/JOIN%20US%20ON-DISCORD-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/VKyvMTcgXh)
 
 </div>
 
@@ -343,6 +346,12 @@ cp .env.example .env            # set POSTGRES_PASSWORD, optionally ANTHROPIC_AP
 docker compose up -d --build
 # → http://localhost:8787
 ```
+
+The checkout build needs the Docker **buildx** plugin (BuildKit). Docker Desktop and
+get.docker.com include it; distro packages and Homebrew's docker CLI (Colima) may not. If
+`docker buildx version` fails, install `docker-buildx-plugin` or `docker-buildx`, or on macOS
+`brew install docker-buildx`. Without it the build stops at the first stage with
+`failed to parse platform`.
 
 The release workflow publishes a multi-arch image (`linux/amd64`, `linux/arm64`) to GitHub
 Container Registry on each `v*` tag, with tags `:latest`, `:v<version>`, and `:<version>`.
@@ -766,6 +775,7 @@ gunzip -c backups/artex-db-<timestamp>.sql.gz | docker compose exec -T postgres 
 ```
 
 Stored secrets (LLM API keys, proxies and gateway custom headers, MCP env, task credentials, notification channel config,
+the chat bot token,
 Brave/Tavily search keys, web search and global proxies, the execution spec of custom tools, the
 capture-proxy rewrite rules) are
 encrypted in the database with the key in `keys/secret.key` (generated at first start, mode 0600,
@@ -871,7 +881,8 @@ CGO_ENABLED=0 go build -tags embedui -o artex ./cmd/artex
 - Backend: `go run ./cmd/artex` (without `-tags embedui`, the frontend is not embedded)
 - Frontend: `cd web && npm run dev` (`/api` is reverse-proxied to the backend, with hot reload)
 - Tests: `go test ./...`
-- Reproduce all CI checks locally: `./scripts/verify.sh` (add `--full` for `-race` and the static web build)
+- Reproduce the fast CI checks locally: `./scripts/verify.sh` (add `--full` for `-race` and the static web build; add `--security` for `govulncheck`)
+- Security scan: install `govulncheck` and run `./scripts/verify.sh --security` (CI runs this on every push and pull request)
 - Mock preview (no backend): `cd web && NEXT_PUBLIC_MOCK=1 npm run dev`
 
 ---
@@ -953,6 +964,7 @@ Please report vulnerabilities privately through GitHub Security Advisories; see
 Operational security properties:
 
 - **Secrets at rest**: LLM keys/proxies/gateway headers, MCP environment, task credentials, notification config,
+  the chat bot token,
   search keys, proxies, custom-tool execution specs, capture-proxy rewrite rules and traffic
   evidence snapshots are encrypted
   with AES-256-GCM using `keys/secret.key` (or `ARTEX_SECRET_KEY`). ARTEX refuses to start when
@@ -967,9 +979,9 @@ Operational security properties:
 
 ---
 
-## About this fork
+## About this project
 
-This repository is the English translation and continuation of ARTEX, originally by [Autumn-27](https://github.com/Autumn-27). The upstream repository is no longer public, so the link points to the author profile. Changes in this fork are tracked in [CHANGELOG.md](CHANGELOG.md), under the same AGPL-3.0 license.
+This repository is the actively maintained community continuation of ARTEX, originally by [Autumn-27](https://github.com/Autumn-27). It diverges from the original with its own features and fixes, tracked in [CHANGELOG.md](CHANGELOG.md), under the same AGPL-3.0 license. The original repository is no longer public, so the link points to the author profile.
 
 ---
 
